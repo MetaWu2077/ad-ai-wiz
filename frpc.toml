@@ -1,0 +1,9 @@
+serverAddr = "43.128.57.102"
+serverPort = 7000
+
+[[proxies]]
+name = "shopify-dev"
+type = "https"
+localIP = "127.0.0.1"
+localPort = 3458
+customDomains = ["www.adaiwiz.com"]
