@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
 import { redirect, useActionData, useNavigation, useSubmit, useLoaderData } from "react-router";
-import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
@@ -89,8 +88,6 @@ export default function NewCampaign() {
   const actionData = useActionData();
   const navigation = useNavigation();
   const submit = useSubmit();
-  const shopify = useAppBridge();
-
   useEffect(() => {
     if (loaderData?.authRequired) {
       window.location.href = "/auth/login";
@@ -117,7 +114,7 @@ export default function NewCampaign() {
 
   const handleSubmit = useCallback(() => {
     if (!product || !sellingPoints.trim() || !adStyle) {
-      shopify.toast.show("请填写核心卖点并选择广告风格", { isError: true });
+      window.alert("请填写核心卖点并选择广告风格");
       return;
     }
     const fd = new FormData();

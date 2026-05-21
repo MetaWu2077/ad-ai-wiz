@@ -1,18 +1,8 @@
 import { Outlet, useLoaderData, useRouteError, Link } from "react-router";
-import { useAppBridge } from "@shopify/app-bridge-react";
+import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
-
-// Polaris imports
-import { AppProvider as PolarisAppProvider } from "@shopify/polaris";
-import translations from "@shopify/polaris/locales/en.json";
-import globalStyles from "@shopify/polaris/build/esm/styles.css?url";
-
-// Inject Polaris CSS globally
-export const links = () => [
-  { rel: "stylesheet", href: globalStyles },
-];
 
 export const loader = async ({ request }) => {
   let session = null;
@@ -32,24 +22,16 @@ export const loader = async ({ request }) => {
 
   return {
     apiKey: process.env.SHOPIFY_API_KEY || "",
-    appUrl: process.env.SHOPIFY_APP_URL || "NOT_SET",
-    authError: authError?.message || null,
-    sessionId: session?.id || null,
     unreadCount,
   };
 };
 
 export default function App() {
   const { apiKey, unreadCount } = useLoaderData();
-  const shopify = useAppBridge();
 
   return (
-    <PolarisAppProvider
-      i18n={translations}
-      linkComponent={Link}
-      apiKey={apiKey}
-    >
-      {/* Simple top navigation — React Router Link, styled as nav tabs */}
+    <AppProvider embedded apiKey={apiKey}>
+      {/* Simple top navigation — React Router Link */}
       <nav style={{ background: "#fff", borderBottom: "1px solid #e5e5e5", padding: "0 16px", marginBottom: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 0, height: 48 }}>
           <Link to="/app" style={{ padding: "0 16px", height: "100%", display: "flex", alignItems: "center", color: "#212b36", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>
@@ -67,14 +49,14 @@ export default function App() {
       <div style={{ padding: "24px" }}>
         <Outlet />
       </div>
-    </PolarisAppProvider>
+    </AppProvider>
   );
 }
 
 export function ErrorBoundary() {
   const error = useRouteError();
   return (
-    <PolarisAppProvider i18n={translations} linkComponent={Link}>
+    <AppProvider embedded>
       <div style={{ padding: 24, fontFamily: "system-ui" }}>
         <h1 style={{ fontSize: 20, fontWeight: 700 }}>加载出错</h1>
         <p style={{ color: "#697184", marginTop: 8 }}>{error?.message || "发生了未知错误"}</p>
@@ -82,7 +64,7 @@ export function ErrorBoundary() {
           返回首页
         </Link>
       </div>
-    </PolarisAppProvider>
+    </AppProvider>
   );
 }
 
