@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { useLoaderData, useNavigate } from "react-router";
+import { useEffect } from "react";
+import { useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { SButtonLink } from "../components/SButtonLink";
 
 const STATUS_MAP = {
   pending:    "待处理",
@@ -37,9 +39,12 @@ export async function loader({ request }) {
 
 export default function Campaigns() {
   const { campaigns } = useLoaderData();
-  const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const filtered = activeTab === "all"
     ? campaigns
@@ -47,7 +52,9 @@ export default function Campaigns() {
 
   return (
     <div style={{ padding: "24px 0" }}>
-      <button onClick={() => navigate("/app/campaigns/new")} style={{ padding: "10px 20px", background: "#005aff", color: "#fff", border: "none", borderRadius: 4, fontSize: 14, cursor: "pointer" }}>新建广告活动</button>
+      <SButtonLink to="/app/campaigns/new" variant="primary">
+        新建广告活动
+      </SButtonLink>
 
       {/* Status filter tabs */}
       <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
@@ -83,18 +90,19 @@ export default function Campaigns() {
             {activeTab === "all" ? "还没有广告活动" : `暂无${TABS.find((t) => t.value === activeTab)?.label}的广告活动`}
           </h2>
           <p style={{ color: "#697184", marginBottom: 16 }}>输入商品链接，填写推广诉求，AI 自动生成视频并投放。</p>
-          <button onClick={() => navigate("/app/campaigns/new")} style={{ padding: "10px 20px", background: "#005aff", color: "#fff", border: "none", borderRadius: 4, fontSize: 14, cursor: "pointer" }}>新建第一个活动</button>
+          <SButtonLink to="/app/campaigns/new" variant="primary">
+            新建第一个活动
+          </SButtonLink>
         </div>
       ) : (
         <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
           {filtered.map((c) => (
-            <a
+            <div
               key={c.id}
-              href={`/app/campaigns/${c.id}`}
-              style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
-              onClick={(e) => { e.preventDefault(); window.location.href = `/app/campaigns/${c.id}`; }}
+              onClick={() => { window.location.href = `/app/campaigns/${c.id}`; }}
+              style={{ cursor: "pointer" }}
             >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f6f6f7", border: "1px solid #c4cdd5", borderRadius: 8, padding: 12, cursor: "pointer" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f6f6f7", border: "1px solid #c4cdd5", borderRadius: 8, padding: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   {c.videoUrl && c.status === "ready" && c.thumbnailUrl ? (
                     <img src={c.thumbnailUrl} alt="视频封面" style={{ width: 64, height: 36, objectFit: "cover", borderRadius: 6 }} />
@@ -107,7 +115,7 @@ export default function Campaigns() {
                     <div style={{ fontWeight: 600, fontSize: 14, color: "#212b36" }}>{c.productTitle}</div>
                     <div style={{ fontSize: 12, color: "#697184", marginTop: 2 }}>日预算 ${c.dailyBudget} · {c.adStyle}</div>
                     <div style={{ fontSize: 12, color: "#919eab", marginTop: 2 }}>
-                      {c.createdAt ? new Date(c.createdAt).toLocaleString("zh-CN") : "-"}
+                      {mounted ? new Date(c.createdAt).toLocaleString("zh-CN") : "-"}
                     </div>
                   </div>
                 </div>
@@ -115,7 +123,7 @@ export default function Campaigns() {
                   {STATUS_MAP[c.status] || c.status}
                 </span>
               </div>
-            </a>
+            </div>
           ))}
         </div>
       )}

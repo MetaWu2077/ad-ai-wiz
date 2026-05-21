@@ -1,7 +1,8 @@
-import { useLoaderData, useNavigate } from "react-router";
+import { useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { SButtonLink } from "../components/SButtonLink";
 
 const STATUS_MAP = {
   pending:    "待处理",
@@ -40,7 +41,6 @@ export const loader = async ({ request }) => {
 
 export default function Index() {
   const { campaigns, stats } = useLoaderData();
-  const navigate = useNavigate();
 
   return (
     <div style={{ padding: "24px 0" }}>
@@ -49,7 +49,9 @@ export default function Index() {
         <p style={{ fontSize: 18, marginBottom: 16, fontFamily: "system-ui", color: "#212b36" }}>
           🎬 输入商品链接，AI 自动生成广告视频并投放到 Facebook、Instagram、TikTok
         </p>
-        <button onClick={() => navigate("/app/campaigns/new")} style={{ padding: "10px 20px", background: "#005aff", color: "#fff", border: "none", borderRadius: 4, fontSize: 14, cursor: "pointer" }}>新建广告活动 →</button>
+        <SButtonLink to="/app/campaigns/new" variant="primary">
+          新建广告活动 →
+        </SButtonLink>
       </div>
 
       {/* Stats */}
@@ -76,13 +78,12 @@ export default function Index() {
           <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: "#212b36" }}>最近活动</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {campaigns.map((c) => (
-              <a
+              <div
                 key={c.id}
-                href={`/app/campaigns/${c.id}`}
-                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
-                onClick={() => navigate(`/app/campaigns/${c.id}`)}
+                onClick={() => { window.location.href = `/app/campaigns/${c.id}`; }}
+                style={{ cursor: "pointer" }}
               >
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f6f6f7", border: "1px solid #c4cdd5", borderRadius: 8, padding: 12, cursor: "pointer" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f6f6f7", border: "1px solid #c4cdd5", borderRadius: 8, padding: 12 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     {c.videoUrl && c.thumbnailUrl && c.status === "ready" ? (
                       <img src={c.thumbnailUrl} alt="封面" style={{ width: 56, height: 32, objectFit: "cover", borderRadius: 4 }} />
@@ -101,12 +102,14 @@ export default function Index() {
                     <span style={{ color: "#919eab" }}>→</span>
                   </div>
                 </div>
-              </a>
+              </div>
             ))}
           </div>
           {stats.total > 3 && (
             <div style={{ marginTop: 12 }}>
-              <button onClick={() => navigate("/app/campaigns")} style={{ marginTop: 12, padding: "8px 16px", background: "#f6f6f7", color: "#212b36", border: "1px solid #c4cdd5", borderRadius: 4, fontSize: 13, cursor: "pointer" }}>查看全部 {stats.total} 个活动 →</button>
+              <SButtonLink to="/app/campaigns">
+                查看全部 {stats.total} 个活动 →
+              </SButtonLink>
             </div>
           )}
         </div>
