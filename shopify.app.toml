@@ -1,8 +1,8 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "8fef57ef8849b0dce9a2a2d84aaba961"
-name = "AdAiWiz"
-application_url = "https://www.adaiwiz.com"
+client_id = "161e3587f555519841f6049be9c90013"
+name = "whftest"
+application_url = "https://born-consult-shots-sat.trycloudflare.com"
 embedded = true
 
 [build]
@@ -20,14 +20,17 @@ api_version = "2026-04"
   uri = "/webhooks/app/uninstalled"
   topics = [ "app/uninstalled" ]
 
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/video/ready"
+  topics = [ "app/video_ready" ]
+
 [access_scopes]
-# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "read_products, write_products, read_analytics, read_metaobjects, write_metaobjects"
 optional_scopes = [ ]
 use_legacy_install_flow = false
 
 [auth]
-redirect_urls = [ ]
+redirect_urls = ["https://born-consult-shots-sat.trycloudflare.com/auth/callback"]
 
 [product.metafields.app.demo_info]
 type = "single_line_text_field"
@@ -44,11 +47,11 @@ description = "An example metaobject definition created by this template"
   [metaobjects.app.example.access]
   admin = "merchant_read_write"
 
-[metaobjects.app.example.fields.title]
-name = "Title"
-type = "single_line_text_field"
-required = true
+  [metaobjects.app.example.fields.title]
+  name = "Title"
+  type = "single_line_text_field"
+  required = true
 
-[metaobjects.app.example.fields.description]
-name = "Description"
-type = "multi_line_text_field"
+  [metaobjects.app.example.fields.description]
+  name = "Description"
+  type = "multi_line_text_field"

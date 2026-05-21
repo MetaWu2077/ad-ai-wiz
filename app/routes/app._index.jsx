@@ -1,338 +1,121 @@
-import { useEffect } from "react";
-import { useFetcher, Link } from "react-router";
-import { useAppBridge } from "@shopify/app-bridge-react";
+import { useLoaderData, Link } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
+import db from "../db.server";
 
-export const loader = async ({ request }) => {
-  await authenticate.admin(request);
-
-  return null;
+const STATUS_MAP = {
+  pending:    "待处理",
+  generating: "生成中",
+  ready:      "待投放",
+  active:     "投放中",
+  paused:     "已暂停",
+  killed:     "已熔断",
 };
 
-export const action = async ({ request }) => {
-  const { admin } = await authenticate.admin(request);
-  const color = ["Red", "Orange", "Yellow", "Green"][
-    Math.floor(Math.random() * 4)
-  ];
-  const response = await admin.graphql(
-    `#graphql
-      mutation populateProduct($product: ProductCreateInput!) {
-        productCreate(product: $product) {
-          product {
-            id
-            title
-            handle
-            status
-            variants(first: 10) {
-              edges {
-                node {
-                  id
-                  price
-                  barcode
-                  createdAt
-                }
-              }
-            }
-            demoInfo: metafield(namespace: "$app", key: "demo_info") {
-              jsonValue
-            }
-          }
-        }
-      }`,
-    {
-      variables: {
-        product: {
-          title: `${color} Snowboard`,
-          metafields: [
-            {
-              namespace: "$app",
-              key: "demo_info",
-              value: "Created by React Router Template",
-            },
-          ],
-        },
-      },
-    },
-  );
-  const responseJson = await response.json();
-  const product = responseJson.data.productCreate.product;
-  const variantId = product.variants.edges[0].node.id;
-  const variantResponse = await admin.graphql(
-    `#graphql
-    mutation shopifyReactRouterTemplateUpdateVariant($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
-      productVariantsBulkUpdate(productId: $productId, variants: $variants) {
-        productVariants {
-          id
-          price
-          barcode
-          createdAt
-        }
-      }
-    }`,
-    {
-      variables: {
-        productId: product.id,
-        variants: [{ id: variantId, price: "100.00" }],
-      },
-    },
-  );
-  const variantResponseJson = await variantResponse.json();
-  const metaobjectResponse = await admin.graphql(
-    `#graphql
-    mutation shopifyReactRouterTemplateUpsertMetaobject($handle: MetaobjectHandleInput!, $metaobject: MetaobjectUpsertInput!) {
-      metaobjectUpsert(handle: $handle, metaobject: $metaobject) {
-        metaobject {
-          id
-          handle
-          title: field(key: "title") {
-            jsonValue
-          }
-          description: field(key: "description") {
-            jsonValue
-          }
-        }
-        userErrors {
-          field
-          message
-        }
-      }
-    }`,
-    {
-      variables: {
-        handle: {
-          type: "$app:example",
-          handle: "demo-entry",
-        },
-        metaobject: {
-          fields: [
-            { key: "title", value: "Demo Entry" },
-            {
-              key: "description",
-              value:
-                "This metaobject was created by the Shopify app template to demonstrate the metaobject API.",
-            },
-          ],
-        },
-      },
-    },
-  );
-  const metaobjectResponseJson = await metaobjectResponse.json();
+export async function loader({ request }) {
+  const { session } = await authenticate.admin(request);
 
-  return {
-    product: responseJson.data.productCreate.product,
-    variant: variantResponseJson.data.productVariantsBulkUpdate.productVariants,
-    metaobject: metaobjectResponseJson.data.metaobjectUpsert.metaobject,
+  const campaigns = await db.campaign.findMany({
+    where: { shop: session.shop },
+    orderBy: { createdAt: "desc" },
+    take: 3,
+  });
+
+  const all = await db.campaign.findMany({
+    where: { shop: session.shop },
+    select: { status: true },
+  });
+
+  const stats = {
+    total:       all.length,
+    pending:     all.filter((c) => c.status === "pending").length,
+    generating:  all.filter((c) => c.status === "generating").length,
+    ready:       all.filter((c) => c.status === "ready").length,
+    active:      all.filter((c) => c.status === "active").length,
+    paused:      all.filter((c) => c.status === "paused").length,
   };
-};
+
+  return { campaigns, stats };
+}
 
 export default function Index() {
-  const fetcher = useFetcher();
-  const shopify = useAppBridge();
-  const isLoading =
-    ["loading", "submitting"].includes(fetcher.state) &&
-    fetcher.formMethod === "POST";
-
-  useEffect(() => {
-    if (fetcher.data?.product?.id) {
-      shopify.toast.show("Product created");
-    }
-  }, [fetcher.data?.product?.id, shopify]);
-  const generateProduct = () => fetcher.submit({}, { method: "POST" });
+  const { campaigns, stats } = useLoaderData();
 
   return (
-    <s-page heading="Shopify app template">
-      {/* 广告活动入口 */}
-      <s-section heading="广告活动">
-        <s-paragraph>
-          输入商品链接，AI 自动生成广告视频并投放到 Facebook、Instagram、TikTok。
-        </s-paragraph>
+    <div style={{ padding: "24px 0" }}>
+      {/* CTA */}
+      <div style={{ background: "#f6f6f7", border: "1px solid #c4cdd5", borderRadius: 8, padding: "32px 24px", textAlign: "center", marginBottom: 24 }}>
+        <p style={{ fontSize: 18, marginBottom: 16, fontFamily: "system-ui", color: "#212b36" }}>
+          🎬 输入商品链接，AI 自动生成广告视频并投放到 Facebook、Instagram、TikTok
+        </p>
         <Link to="/app/campaigns/new" style={{ display: "inline-block", textDecoration: "none" }}>
-          <s-button variant="primary">新建广告活动</s-button>
+          <button style={{ background: "#005aff", color: "#fff", border: "none", borderRadius: 4, padding: "10px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+            新建广告活动 →
+          </button>
         </Link>
-      </s-section>
+      </div>
 
-      <s-button slot="primary-action" variant="primary" onClick={generateProduct}>
-        Generate a product
-      </s-button>
+      {/* Stats */}
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: "#212b36" }}>数据概览</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+          {[
+            { label: "全部活动", value: stats.total, color: "#212b36" },
+            { label: "处理中", value: stats.pending + stats.generating, color: "#bf5700" },
+            { label: "待投放", value: stats.ready, color: "#008060" },
+            { label: "投放中", value: stats.active, color: "#005aff" },
+          ].map(({ label, value, color }) => (
+            <div key={label} style={{ background: "#f6f6f7", border: "1px solid #c4cdd5", borderRadius: 8, padding: 16, textAlign: "center" }}>
+              <div style={{ fontSize: 28, fontWeight: 700, color }}>{value}</div>
+              <div style={{ fontSize: 12, color: "#697184", marginTop: 4 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
 
-      <s-section heading="Congrats on creating a new Shopify app 🎉">
-        <s-paragraph>
-          This embedded app template uses{" "}
-          <s-link
-            href="https://shopify.dev/docs/apps/tools/app-bridge"
-            target="_blank"
-          >
-            App Bridge
-          </s-link>{" "}
-          interface examples like an{" "}
-          <s-link href="/app/additional">additional page in the app nav</s-link>
-          , as well as an{" "}
-          <s-link
-            href="https://shopify.dev/docs/api/admin-graphql"
-            target="_blank"
-          >
-            Admin GraphQL
-          </s-link>{" "}
-          mutation demo, to provide a starting point for app development.
-        </s-paragraph>
-      </s-section>
-      <s-section heading="Get started with products">
-        <s-paragraph>
-          Generate a product with GraphQL and get the JSON output for that
-          product. Learn more about the{" "}
-          <s-link
-            href="https://shopify.dev/docs/api/admin-graphql/latest/mutations/productCreate"
-            target="_blank"
-          >
-            productCreate
-          </s-link>{" "}
-          mutation in our API references. Includes a product{" "}
-          <s-link
-            href="https://shopify.dev/docs/apps/build/custom-data/metafields"
-            target="_blank"
-          >
-            metafield
-          </s-link>{" "}
-          and{" "}
-          <s-link
-            href="https://shopify.dev/docs/apps/build/custom-data/metaobjects"
-            target="_blank"
-          >
-            metaobject
-          </s-link>
-          .
-        </s-paragraph>
-        <s-stack direction="inline" gap="base">
-          <s-button
-            onClick={generateProduct}
-            {...(isLoading ? { loading: true } : {})}
-          >
-            Generate a product
-          </s-button>
-          {fetcher.data?.product && (
-            <s-button
-              onClick={() => {
-                shopify.intents.invoke?.("edit:shopify/Product", {
-                  value: fetcher.data?.product?.id,
-                });
-              }}
-              target="_blank"
-              variant="tertiary"
-            >
-              Edit product
-            </s-button>
+      {/* Recent campaigns */}
+      {campaigns.length > 0 && (
+        <div>
+          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: "#212b36" }}>最近活动</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {campaigns.map((c) => (
+              <Link
+                key={c.id}
+                to={`/app/campaigns/${c.id}`}
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f6f6f7", border: "1px solid #c4cdd5", borderRadius: 8, padding: 12, cursor: "pointer" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    {c.videoUrl && c.thumbnailUrl && c.status === "ready" ? (
+                      <img src={c.thumbnailUrl} alt="封面" style={{ width: 56, height: 32, objectFit: "cover", borderRadius: 4 }} />
+                    ) : (
+                      <div style={{ width: 56, height: 32, background: "#d9d9d9", borderRadius: 4 }} />
+                    )}
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: "#212b36" }}>{c.productTitle}</div>
+                      <div style={{ fontSize: 12, color: "#697184", marginTop: 2 }}>日预算 ${c.dailyBudget}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ background: c.status === "active" ? "#008060" : "#919eab", color: "#fff", padding: "2px 8px", borderRadius: 12, fontSize: 12, fontWeight: 600 }}>
+                      {STATUS_MAP[c.status] || c.status}
+                    </span>
+                    <span style={{ color: "#919eab" }}>→</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          {stats.total > 3 && (
+            <Link to="/app/campaigns" style={{ display: "inline-block", textDecoration: "none", marginTop: 12 }}>
+              <button style={{ background: "none", border: "1px solid #c4cdd5", borderRadius: 4, padding: "6px 12px", fontSize: 13, cursor: "pointer", color: "#212b36" }}>
+                查看全部 {stats.total} 个活动 →
+              </button>
+            </Link>
           )}
-        </s-stack>
-        {fetcher.data?.product && (
-          <s-section heading="productCreate mutation">
-            <s-stack direction="block" gap="base">
-              <s-box
-                padding="base"
-                borderWidth="base"
-                borderRadius="base"
-                background="subdued"
-              >
-                <pre style={{ margin: 0 }}>
-                  <code>{JSON.stringify(fetcher.data.product, null, 2)}</code>
-                </pre>
-              </s-box>
-
-              <s-heading>productVariantsBulkUpdate mutation</s-heading>
-              <s-box
-                padding="base"
-                borderWidth="base"
-                borderRadius="base"
-                background="subdued"
-              >
-                <pre style={{ margin: 0 }}>
-                  <code>{JSON.stringify(fetcher.data.variant, null, 2)}</code>
-                </pre>
-              </s-box>
-
-              <s-heading>metaobjectUpsert mutation</s-heading>
-              <s-box
-                padding="base"
-                borderWidth="base"
-                borderRadius="base"
-                background="subdued"
-              >
-                <pre style={{ margin: 0 }}>
-                  <code>
-                    {JSON.stringify(fetcher.data.metaobject, null, 2)}
-                  </code>
-                </pre>
-              </s-box>
-            </s-stack>
-          </s-section>
-        )}
-      </s-section>
-
-      <s-section slot="aside" heading="App template specs">
-        <s-paragraph>
-          <s-text>Framework: </s-text>
-          <s-link href="https://reactrouter.com/" target="_blank">
-            React Router
-          </s-link>
-        </s-paragraph>
-        <s-paragraph>
-          <s-text>Interface: </s-text>
-          <s-link
-            href="https://shopify.dev/docs/api/app-home/using-polaris-components"
-            target="_blank"
-          >
-            Polaris web components
-          </s-link>
-        </s-paragraph>
-        <s-paragraph>
-          <s-text>API: </s-text>
-          <s-link
-            href="https://shopify.dev/docs/api/admin-graphql"
-            target="_blank"
-          >
-            GraphQL
-          </s-link>
-        </s-paragraph>
-        <s-paragraph>
-          <s-text>Custom data: </s-text>
-          <s-link
-            href="https://shopify.dev/docs/apps/build/custom-data"
-            target="_blank"
-          >
-            Metafields &amp; metaobjects
-          </s-link>
-        </s-paragraph>
-        <s-paragraph>
-          <s-text>Database: </s-text>
-          <s-link href="https://www.prisma.io/" target="_blank">
-            Prisma
-          </s-link>
-        </s-paragraph>
-      </s-section>
-
-      <s-section slot="aside" heading="Next steps">
-        <s-unordered-list>
-          <s-list-item>
-            Build an{" "}
-            <s-link
-              href="https://shopify.dev/docs/apps/getting-started/build-app-example"
-              target="_blank"
-            >
-              example app
-            </s-link>
-          </s-list-item>
-          <s-list-item>
-            Explore Shopify&apos;s API with{" "}
-            <s-link
-              href="https://shopify.dev/docs/apps/tools/graphiql-admin-api"
-              target="_blank"
-            >
-              GraphiQL
-            </s-link>
-          </s-list-item>
-        </s-unordered-list>
-      </s-section>
-    </s-page>
+        </div>
+      )}
+    </div>
   );
 }
 

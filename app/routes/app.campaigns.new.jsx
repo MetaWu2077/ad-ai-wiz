@@ -1,12 +1,17 @@
-import { useState, useCallback } from "react";
-import { Link, redirect, useActionData, useNavigation, useSubmit } from "react-router";
+import { useState, useCallback, useEffect } from "react";
+import { redirect, useActionData, useNavigation, useSubmit, useNavigate, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 
 export async function loader({ request }) {
-  await authenticate.admin(request);
+  try {
+    await authenticate.admin(request);
+  } catch (e) {
+    // Session invalid — redirect will be handled client-side
+    return { authRequired: true };
+  }
   return {};
 }
 
@@ -56,6 +61,7 @@ export async function action({ request }) {
         productId:     formData.get("productId"),
         productTitle:  formData.get("productTitle"),
         productImage:  formData.get("productImage"),
+        productUrl:    formData.get("productUrl"),
         targetAudience: formData.get("targetAudience"),
         sellingPoints:  formData.get("sellingPoints"),
         dailyBudget:    parseFloat(formData.get("dailyBudget")) || 20,
@@ -79,10 +85,18 @@ const AD_STYLES = [
 ];
 
 export default function NewCampaign() {
+  const loaderData = useLoaderData();
   const actionData = useActionData();
   const navigation = useNavigation();
   const submit = useSubmit();
   const shopify = useAppBridge();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (loaderData?.authRequired) {
+      navigate('/auth/login');
+    }
+  }, [loaderData, navigate]);
 
   const isLoading = navigation.state === "submitting";
   const product = actionData?.intent === "fetch_product" ? actionData?.product : null;
@@ -108,6 +122,7 @@ export default function NewCampaign() {
       return;
     }
     const fd = new FormData();
+    fd.append("productUrl",     productUrl);
     fd.append("intent",         "create_campaign");
     fd.append("productId",      product.id);
     fd.append("productTitle",   product.title);
@@ -124,9 +139,7 @@ export default function NewCampaign() {
 
   return (
     <s-page heading="新建广告活动">
-      <Link slot="primary-action" to="/app">
-        <s-button>返回</s-button>
-      </Link>
+      <s-button onClick={() => navigate("/app/campaigns")}>返回</s-button>
 
       <s-section heading="第一步：选择推广商品">
         <s-paragraph>
