@@ -2,7 +2,6 @@ import { useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
-import { Button } from "@shopify/polaris";
 
 const STATUS_MAP = {
   pending:    "待处理",
@@ -49,9 +48,7 @@ export default function Index() {
         <p style={{ fontSize: 18, marginBottom: 16, fontFamily: "system-ui", color: "#212b36" }}>
           🎬 输入商品链接，AI 自动生成广告视频并投放到 Facebook、Instagram、TikTok
         </p>
-        <Button url="/app/campaigns/new" variant="primary">
-          新建广告活动 →
-        </Button>
+        <button onClick={() => { window.location.href = "/app/campaigns/new"; }} style={{ padding: "10px 20px", background: "#005aff", color: "#fff", border: "none", borderRadius: 4, fontSize: 14, cursor: "pointer" }}>新建广告活动 →</button>
       </div>
 
       {/* Stats */}
@@ -108,9 +105,7 @@ export default function Index() {
           </div>
           {stats.total > 3 && (
             <div style={{ marginTop: 12 }}>
-              <Button url="/app/campaigns">
-                查看全部 {stats.total} 个活动 →
-              </Button>
+              <button onClick={() => { window.location.href = "/app/campaigns"; }} style={{ marginTop: 12, padding: "8px 16px", background: "#f6f6f7", color: "#212b36", border: "1px solid #c4cdd5", borderRadius: 4, fontSize: 13, cursor: "pointer" }}>查看全部 {stats.total} 个活动 →</button>
             </div>
           )}
         </div>

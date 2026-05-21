@@ -3,7 +3,6 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { useRouteError } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
-import { Button } from "@shopify/polaris";
 
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
@@ -152,9 +151,7 @@ export default function Notifications() {
               </div>
               <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                 {notification.campaignId && (
-                  <Button url={`/app/campaigns/${notification.campaignId}`} variant="plain">
-                    查看
-                  </Button>
+                  <button onClick={() => { window.location.href = `/app/campaigns/${notification.campaignId}`; }} style={{ padding: "4px 12px", background: "transparent", color: "#005aff", border: "none", fontSize: 13, cursor: "pointer", textDecoration: "underline" }}>查看</button>
                 )}
                 {!notification.read && (
                   <form method="post">

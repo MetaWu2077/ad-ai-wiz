@@ -31,7 +31,6 @@ export default function App() {
 
   return (
     <AppProvider embedded apiKey={apiKey}>
-      {/* Simple top navigation — React Router Link */}
       <nav style={{ background: "#fff", borderBottom: "1px solid #e5e5e5", padding: "0 16px", marginBottom: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 0, height: 48 }}>
           <Link to="/app" style={{ padding: "0 16px", height: "100%", display: "flex", alignItems: "center", color: "#212b36", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>
@@ -45,7 +44,6 @@ export default function App() {
           </Link>
         </div>
       </nav>
-      {/* Page content */}
       <div style={{ padding: "24px" }}>
         <Outlet />
       </div>

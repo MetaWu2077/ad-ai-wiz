@@ -3,7 +3,6 @@ import { redirect, useActionData, useNavigation, useSubmit, useLoaderData } from
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
-import { Button } from "@shopify/polaris";
 
 export async function loader({ request }) {
   try {
@@ -135,7 +134,7 @@ export default function NewCampaign() {
 
   return (
     <div style={{ padding: "24px 0", maxWidth: 720 }}>
-      <Button url="/app/campaigns">返回</Button>
+      <button onClick={() => { window.location.href = "/app/campaigns"; }} style={{ padding: "8px 16px", background: "#f6f6f7", color: "#212b36", border: "1px solid #c4cdd5", borderRadius: 4, fontSize: 13, cursor: "pointer" }}>返回</button>
 
       <div style={{ marginTop: 24 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: "#212b36", marginBottom: 24 }}>新建广告活动</h1>
