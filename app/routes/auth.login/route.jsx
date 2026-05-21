@@ -38,7 +38,7 @@ export default function Auth() {
               autocomplete="on"
               error={errors.shop}
             ></s-text-field>
-            <Button variant="primary" type="submit">Log in</Button>
+            <button type="submit" className="shopify-button-primary">Log in</button>
           </s-section>
         </Form>
       </s-page>

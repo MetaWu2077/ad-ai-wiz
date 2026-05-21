@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useLoaderData, useNavigate } from "react-router";
-import { Button } from "@shopify/polaris";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
@@ -42,7 +41,7 @@ export default function CampaignDetail() {
 
   return (
     <s-page heading="广告活动详情">
-      <Button onClick={() => navigate("/app/campaigns")}>← 返回列表</Button>
+      <button onClick={() => navigate("/app/campaigns")} className="shopify-button">← 返回列表</button>
 
       {/* Header */}
       <s-section heading="活动概览">

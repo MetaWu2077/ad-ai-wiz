@@ -1,5 +1,4 @@
 import { useLoaderData, useNavigate } from "react-router";
-import { Button } from "@shopify/polaris";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { useRouteError } from "react-router";
 import { authenticate } from "../shopify.server";
@@ -153,9 +152,9 @@ export default function Notifications() {
               </div>
               <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                 {notification.campaignId && (
-                  <Button onClick={() => navigate(`/app/campaigns/${notification.campaignId}`)}>
+                  <button onClick={() => navigate(`/app/campaigns/${notification.campaignId}`)} className="shopify-button-link">
                     查看
-                  </Button>
+                  </button>
                 )}
                 {!notification.read && (
                   <form method="post">

@@ -1,5 +1,4 @@
 import { useLoaderData, useNavigate } from "react-router";
-import { Button } from "@shopify/polaris";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
@@ -50,9 +49,7 @@ export default function Index() {
         <p style={{ fontSize: 18, marginBottom: 16, fontFamily: "system-ui", color: "#212b36" }}>
           🎬 输入商品链接，AI 自动生成广告视频并投放到 Facebook、Instagram、TikTok
         </p>
-        <Button variant="primary" onClick={() => navigate("/app/campaigns/new")}>
-          新建广告活动 →
-        </Button>
+        <button onClick={() => navigate("/app/campaigns/new")} className="shopify-button-primary">新建广告活动 →</button>
       </div>
 
       {/* Stats */}
@@ -107,9 +104,7 @@ export default function Index() {
             ))}
           </div>
           {stats.total > 3 && (
-            <Button onClick={() => navigate("/app/campaigns")}>
-                查看全部 {stats.total} 个活动 →
-              </Button>
+            <button onClick={() => navigate("/app/campaigns")} className="shopify-button">查看全部 {stats.total} 个活动 →</button>
           )}
         </div>
       )}

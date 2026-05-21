@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from "react";
-import { Button } from "@shopify/polaris";
 import { redirect, useActionData, useNavigation, useSubmit, useNavigate, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -140,7 +139,7 @@ export default function NewCampaign() {
 
   return (
     <s-page heading="新建广告活动">
-      <Button onClick={() => navigate("/app/campaigns")}>返回</Button>
+      <button onClick={() => navigate("/app/campaigns")} className="shopify-button">返回</button>
 
       <s-section heading="第一步：选择推广商品">
         <s-paragraph>
@@ -155,13 +154,7 @@ export default function NewCampaign() {
             placeholder="https://your-store.myshopify.com/products/your-product"
             style={{ flex: 1 }}
           />
-          <Button
-            onClick={handleFetchProduct}
-            loading={isLoading}
-            disabled={!productUrl.trim()}
-          >
-            查询商品
-          </Button>
+          <button onClick={handleFetchProduct} disabled={!productUrl.trim()} className="shopify-button">{isLoading ? "查询中..." : "查询商品"}</button>
         </s-stack>
 
         {fetchError && (
@@ -250,13 +243,7 @@ export default function NewCampaign() {
             />
 
             <s-stack direction="inline" align="end">
-              <Button
-                variant="primary"
-                onClick={handleSubmit}
-                loading={isLoading}
-              >
-                创建广告活动 →
-              </Button>
+              <button onClick={handleSubmit} className="shopify-button-primary">{isLoading ? "创建中..." : "创建广告活动 →"}</button>
             </s-stack>
           </s-stack>
         </s-section>

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useLoaderData, useNavigate } from "react-router";
-import { Button } from "@shopify/polaris";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
@@ -52,9 +51,7 @@ export default function Campaigns() {
 
   return (
     <div style={{ padding: "24px 0" }}>
-      <Button variant="primary" onClick={() => navigate("/app/campaigns/new")}>
-        新建广告活动
-      </Button>
+      <button onClick={() => navigate("/app/campaigns/new")} className="shopify-button-primary">新建广告活动</button>
 
       {/* Status filter tabs */}
       <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
@@ -90,9 +87,7 @@ export default function Campaigns() {
             {activeTab === "all" ? "还没有广告活动" : `暂无${TABS.find((t) => t.value === activeTab)?.label}的广告活动`}
           </h2>
           <p style={{ color: "#697184", marginBottom: 16 }}>输入商品链接，填写推广诉求，AI 自动生成视频并投放。</p>
-          <Button variant="primary" onClick={() => navigate("/app/campaigns/new")}>
-            新建第一个活动
-          </Button>
+          <button onClick={() => navigate("/app/campaigns/new")} className="shopify-button-primary">新建第一个活动</button>
         </div>
       ) : (
         <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
