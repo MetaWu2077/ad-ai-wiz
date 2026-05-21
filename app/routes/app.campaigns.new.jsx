@@ -33,9 +33,6 @@ export async function action({ request }) {
           priceRangeV2 {
             minVariantPrice { amount currencyCode }
           }
-          compareAtPriceRange {
-            minVariantPrice { amount currencyCode }
-          }
           images(first: 1) {
             edges { node { url altText } }
           }
