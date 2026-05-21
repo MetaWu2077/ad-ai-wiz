@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, useNavigate } from "react-router";
+import { Button } from "@shopify/polaris";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
@@ -37,6 +38,7 @@ export async function loader({ request }) {
 
 export default function Campaigns() {
   const { campaigns } = useLoaderData();
+  const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
 
@@ -50,11 +52,9 @@ export default function Campaigns() {
 
   return (
     <div style={{ padding: "24px 0" }}>
-      <Link to="/app/campaigns/new" style={{ display: "inline-block", textDecoration: "none" }}>
-        <button style={{ background: "#005aff", color: "#fff", border: "none", borderRadius: 4, padding: "10px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
-          新建广告活动
-        </button>
-      </Link>
+      <Button variant="primary" onClick={() => navigate("/app/campaigns/new")}>
+        新建广告活动
+      </Button>
 
       {/* Status filter tabs */}
       <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
@@ -90,19 +90,17 @@ export default function Campaigns() {
             {activeTab === "all" ? "还没有广告活动" : `暂无${TABS.find((t) => t.value === activeTab)?.label}的广告活动`}
           </h2>
           <p style={{ color: "#697184", marginBottom: 16 }}>输入商品链接，填写推广诉求，AI 自动生成视频并投放。</p>
-          <Link to="/app/campaigns/new" style={{ display: "inline-block", textDecoration: "none" }}>
-            <button style={{ background: "#005aff", color: "#fff", border: "none", borderRadius: 4, padding: "8px 16px", fontSize: 14, cursor: "pointer" }}>
-              新建第一个活动
-            </button>
-          </Link>
+          <Button variant="primary" onClick={() => navigate("/app/campaigns/new")}>
+            新建第一个活动
+          </Button>
         </div>
       ) : (
         <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
           {filtered.map((c) => (
-            <Link
+            <div
               key={c.id}
-              to={`/app/campaigns/${c.id}`}
-              style={{ textDecoration: "none", color: "inherit" }}
+              onClick={() => navigate(`/app/campaigns/${c.id}`)}
+              style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f6f6f7", border: "1px solid #c4cdd5", borderRadius: 8, padding: 12, cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -125,7 +123,7 @@ export default function Campaigns() {
                   {STATUS_MAP[c.status] || c.status}
                 </span>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}

@@ -38,7 +38,7 @@ export default function Auth() {
               autocomplete="on"
               error={errors.shop}
             ></s-text-field>
-            <s-button type="submit">Log in</s-button>
+            <Button variant="primary" type="submit">Log in</Button>
           </s-section>
         </Form>
       </s-page>

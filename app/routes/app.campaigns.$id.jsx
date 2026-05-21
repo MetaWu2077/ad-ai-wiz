@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, useNavigate } from "react-router";
+import { Button } from "@shopify/polaris";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
@@ -29,6 +30,7 @@ export async function loader({ request, params }) {
 
 export default function CampaignDetail() {
   const { campaign } = useLoaderData();
+  const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -40,9 +42,7 @@ export default function CampaignDetail() {
 
   return (
     <s-page heading="广告活动详情">
-      <Link to="/app/campaigns" style={{ display: "inline-block", textDecoration: "none" }}>
-        <s-button>← 返回列表</s-button>
-      </Link>
+      <Button onClick={() => navigate("/app/campaigns")}>← 返回列表</Button>
 
       {/* Header */}
       <s-section heading="活动概览">
