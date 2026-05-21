@@ -129,7 +129,7 @@ export default function NewCampaign() {
     fd.append("adStyle",        adStyle);
     fd.append("competitorRef",  competitorRef);
     submit(fd, { method: "post" });
-  }, [product, targetAudience, sellingPoints, dailyBudget, adStyle, competitorRef, submit, shopify]);
+  }, [product, targetAudience, sellingPoints, dailyBudget, adStyle, competitorRef, submit]);
 
   const price = product?.priceRangeV2?.minVariantPrice;
 
@@ -155,9 +155,9 @@ export default function NewCampaign() {
                 style={{ width: "100%", padding: "8px 12px", border: "1px solid #c4cdd5", borderRadius: 4, fontSize: 14 }}
               />
             </div>
-            <Button onClick={handleFetchProduct} loading={isLoading} disabled={!productUrl.trim()}>
-              查询商品
-            </Button>
+            <button onClick={handleFetchProduct} disabled={!productUrl.trim() || isLoading} style={{ padding: "8px 16px", background: isLoading ? "#919eab" : "#005aff", color: "#fff", border: "none", borderRadius: 4, fontSize: 13, cursor: isLoading ? "not-allowed" : "pointer" }}>
+              {isLoading ? "查询中..." : "查询商品"}
+            </button>
           </div>
 
           {fetchError && (
@@ -248,9 +248,9 @@ export default function NewCampaign() {
               </div>
 
               <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
-                <Button variant="primary" onClick={handleSubmit} loading={isLoading}>
-                  创建广告活动 →
-                </Button>
+                <button onClick={handleSubmit} disabled={isLoading} style={{ padding: "10px 20px", background: isLoading ? "#919eab" : "#008060", color: "#fff", border: "none", borderRadius: 4, fontSize: 14, cursor: isLoading ? "not-allowed" : "pointer" }}>
+                  {isLoading ? "创建中..." : "创建广告活动 →"}
+                </button>
               </div>
             </div>
           </section>
