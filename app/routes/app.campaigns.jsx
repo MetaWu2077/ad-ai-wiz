@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLoaderData } from "react-router";
+import { useLoaderData, useNavigate } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
@@ -37,6 +37,7 @@ export async function loader({ request }) {
 
 export default function Campaigns() {
   const { campaigns } = useLoaderData();
+  const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
 
@@ -46,7 +47,7 @@ export default function Campaigns() {
 
   return (
     <div style={{ padding: "24px 0" }}>
-      <button onClick={() => { window.location.href = "/app/campaigns/new"; }} style={{ padding: "10px 20px", background: "#005aff", color: "#fff", border: "none", borderRadius: 4, fontSize: 14, cursor: "pointer" }}>新建广告活动</button>
+      <button onClick={() => navigate("/app/campaigns/new")} style={{ padding: "10px 20px", background: "#005aff", color: "#fff", border: "none", borderRadius: 4, fontSize: 14, cursor: "pointer" }}>新建广告活动</button>
 
       {/* Status filter tabs */}
       <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
@@ -82,7 +83,7 @@ export default function Campaigns() {
             {activeTab === "all" ? "还没有广告活动" : `暂无${TABS.find((t) => t.value === activeTab)?.label}的广告活动`}
           </h2>
           <p style={{ color: "#697184", marginBottom: 16 }}>输入商品链接，填写推广诉求，AI 自动生成视频并投放。</p>
-          <button onClick={() => { window.location.href = "/app/campaigns/new"; }} style={{ padding: "10px 20px", background: "#005aff", color: "#fff", border: "none", borderRadius: 4, fontSize: 14, cursor: "pointer" }}>新建第一个活动</button>
+          <button onClick={() => navigate("/app/campaigns/new")} style={{ padding: "10px 20px", background: "#005aff", color: "#fff", border: "none", borderRadius: 4, fontSize: 14, cursor: "pointer" }}>新建第一个活动</button>
         </div>
       ) : (
         <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>

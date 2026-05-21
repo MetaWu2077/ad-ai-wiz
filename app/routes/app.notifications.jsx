@@ -1,4 +1,4 @@
-import { useLoaderData } from "react-router";
+import { useLoaderData, useNavigate } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { useRouteError } from "react-router";
 import { authenticate } from "../shopify.server";
@@ -42,6 +42,7 @@ export async function action({ request }) {
 
 export default function Notifications() {
   const { notifications } = useLoaderData();
+  const navigate = useNavigate();
 
   const formatTime = (dateStr) => {
     const date = new Date(dateStr);
@@ -151,7 +152,7 @@ export default function Notifications() {
               </div>
               <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                 {notification.campaignId && (
-                  <button onClick={() => { window.location.href = `/app/campaigns/${notification.campaignId}`; }} style={{ padding: "4px 12px", background: "transparent", color: "#005aff", border: "none", fontSize: 13, cursor: "pointer", textDecoration: "underline" }}>查看</button>
+                  <button onClick={() => { navigate(`/app/campaigns/${notification.campaignId}`) }} style={{ padding: "4px 12px", background: "transparent", color: "#005aff", border: "none", fontSize: 13, cursor: "pointer", textDecoration: "underline" }}>查看</button>
                 )}
                 {!notification.read && (
                   <form method="post">
