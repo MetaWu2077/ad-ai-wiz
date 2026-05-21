@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useEffect } from "react";
-import { useLoaderData } from "react-router";
+import { useLoaderData, useNavigate } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
@@ -39,6 +39,7 @@ export async function loader({ request }) {
 
 export default function Campaigns() {
   const { campaigns } = useLoaderData();
+  const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
 
@@ -52,6 +53,7 @@ export default function Campaigns() {
 
   return (
     <div style={{ padding: "24px 0" }}>
+      {/* Always-visible "新建广告活动" button at top */}
       <SButtonLink to="/app/campaigns/new" variant="primary">
         新建广告活动
       </SButtonLink>
@@ -90,16 +92,28 @@ export default function Campaigns() {
             {activeTab === "all" ? "还没有广告活动" : `暂无${TABS.find((t) => t.value === activeTab)?.label}的广告活动`}
           </h2>
           <p style={{ color: "#697184", marginBottom: 16 }}>输入商品链接，填写推广诉求，AI 自动生成视频并投放。</p>
-          <SButtonLink to="/app/campaigns/new" variant="primary">
+          {/* Use plain button for empty state to avoid Shadow DOM issues */}
+          <button
+            onClick={() => navigate("/app/campaigns/new")}
+            style={{
+              padding: "10px 20px",
+              background: "#005aff",
+              color: "#fff",
+              border: "none",
+              borderRadius: 4,
+              fontSize: 14,
+              cursor: "pointer",
+            }}
+          >
             新建第一个活动
-          </SButtonLink>
+          </button>
         </div>
       ) : (
         <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
           {filtered.map((c) => (
             <div
               key={c.id}
-              onClick={() => { window.location.href = `/app/campaigns/${c.id}`; }}
+              onClick={() => navigate(`/app/campaigns/${c.id}`)}
               style={{ cursor: "pointer" }}
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f6f6f7", border: "1px solid #c4cdd5", borderRadius: 8, padding: 12 }}>
