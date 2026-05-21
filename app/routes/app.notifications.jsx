@@ -1,8 +1,9 @@
-import { useLoaderData, useNavigate } from "react-router";
+import { useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { useRouteError } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { Button } from "@shopify/polaris";
 
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
@@ -42,7 +43,6 @@ export async function action({ request }) {
 
 export default function Notifications() {
   const { notifications } = useLoaderData();
-  const navigate = useNavigate();
 
   const formatTime = (dateStr) => {
     const date = new Date(dateStr);
@@ -152,9 +152,9 @@ export default function Notifications() {
               </div>
               <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                 {notification.campaignId && (
-                  <button onClick={() => navigate(`/app/campaigns/${notification.campaignId}`)} className="shopify-button-link">
+                  <Button url={`/app/campaigns/${notification.campaignId}`} variant="plain">
                     查看
-                  </button>
+                  </Button>
                 )}
                 {!notification.read && (
                   <form method="post">

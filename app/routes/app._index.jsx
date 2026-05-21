@@ -1,7 +1,8 @@
-import { useLoaderData, useNavigate } from "react-router";
+import { useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { Button } from "@shopify/polaris";
 
 const STATUS_MAP = {
   pending:    "待处理",
@@ -12,7 +13,7 @@ const STATUS_MAP = {
   killed:     "已熔断",
 };
 
-export async function loader({ request }) {
+export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
 
   const campaigns = await db.campaign.findMany({
@@ -36,11 +37,10 @@ export async function loader({ request }) {
   };
 
   return { campaigns, stats };
-}
+};
 
 export default function Index() {
   const { campaigns, stats } = useLoaderData();
-  const navigate = useNavigate();
 
   return (
     <div style={{ padding: "24px 0" }}>
@@ -49,7 +49,9 @@ export default function Index() {
         <p style={{ fontSize: 18, marginBottom: 16, fontFamily: "system-ui", color: "#212b36" }}>
           🎬 输入商品链接，AI 自动生成广告视频并投放到 Facebook、Instagram、TikTok
         </p>
-        <button onClick={() => navigate("/app/campaigns/new")} className="shopify-button-primary">新建广告活动 →</button>
+        <Button url="/app/campaigns/new" variant="primary">
+          新建广告活动 →
+        </Button>
       </div>
 
       {/* Stats */}
@@ -76,10 +78,11 @@ export default function Index() {
           <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: "#212b36" }}>最近活动</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {campaigns.map((c) => (
-              <div
+              <a
                 key={c.id}
-                onClick={() => navigate(`/app/campaigns/${c.id}`)}
+                href={`/app/campaigns/${c.id}`}
                 style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+                onClick={(e) => { e.preventDefault(); window.location.href = `/app/campaigns/${c.id}`; }}
               >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f6f6f7", border: "1px solid #c4cdd5", borderRadius: 8, padding: 12, cursor: "pointer" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -100,11 +103,15 @@ export default function Index() {
                     <span style={{ color: "#919eab" }}>→</span>
                   </div>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
           {stats.total > 3 && (
-            <button onClick={() => navigate("/app/campaigns")} className="shopify-button">查看全部 {stats.total} 个活动 →</button>
+            <div style={{ marginTop: 12 }}>
+              <Button url="/app/campaigns">
+                查看全部 {stats.total} 个活动 →
+              </Button>
+            </div>
           )}
         </div>
       )}

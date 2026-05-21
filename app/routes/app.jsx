@@ -1,9 +1,18 @@
-import { Outlet, useLoaderData, useRouteError, useNavigate } from "react-router";
+import { Outlet, useLoaderData, useRouteError, Link } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+
+// Polaris imports
+import { AppProvider as PolarisAppProvider } from "@shopify/polaris";
+import translations from "@shopify/polaris/locales/en.json";
+import globalStyles from "@shopify/polaris/build/esm/styles.css?url";
+
+// Inject Polaris CSS globally
+export const links = () => [
+  { rel: "stylesheet", href: globalStyles },
+];
 
 export const loader = async ({ request }) => {
   let session = null;
@@ -33,43 +42,47 @@ export const loader = async ({ request }) => {
 export default function App() {
   const { apiKey, unreadCount } = useLoaderData();
   const shopify = useAppBridge();
-  const navigate = useNavigate();
-
-
-  const navTo = (path) => {
-    navigate(path);
-  };
 
   return (
-    <AppProvider embedded apiKey={apiKey}>
-      {/* Simple top navigation */}
+    <PolarisAppProvider
+      i18n={translations}
+      linkComponent={Link}
+      apiKey={apiKey}
+    >
+      {/* Simple top navigation — React Router Link, styled as nav tabs */}
       <nav style={{ background: "#fff", borderBottom: "1px solid #e5e5e5", padding: "0 16px", marginBottom: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 0, height: 48 }}>
-          <button onClick={() => navTo("/app")} style={{ padding: "0 16px", height: "100%", display: "flex", alignItems: "center", color: "#212b36", textDecoration: "none", fontSize: 14, fontWeight: 500, background: "none", border: "none", cursor: "pointer" }}>首页</button>
-          <button onClick={() => navTo("/app/campaigns")} style={{ padding: "0 16px", height: "100%", display: "flex", alignItems: "center", color: "#212b36", textDecoration: "none", fontSize: 14, fontWeight: 500, background: "none", border: "none", cursor: "pointer" }}>广告活动</button>
-          <button onClick={() => navTo("/app/notifications")} style={{ padding: "0 16px", height: "100%", display: "flex", alignItems: "center", color: "#212b36", textDecoration: "none", fontSize: 14, fontWeight: 500, background: "none", border: "none", cursor: "pointer" }}>
+          <Link to="/app" style={{ padding: "0 16px", height: "100%", display: "flex", alignItems: "center", color: "#212b36", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>
+            首页
+          </Link>
+          <Link to="/app/campaigns" style={{ padding: "0 16px", height: "100%", display: "flex", alignItems: "center", color: "#212b36", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>
+            广告活动
+          </Link>
+          <Link to="/app/notifications" style={{ padding: "0 16px", height: "100%", display: "flex", alignItems: "center", color: "#212b36", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>
             通知{unreadCount > 0 ? ` (${unreadCount})` : ""}
-          </button>
+          </Link>
         </div>
       </nav>
       {/* Page content */}
       <div style={{ padding: "24px" }}>
         <Outlet />
       </div>
-    </AppProvider>
+    </PolarisAppProvider>
   );
 }
 
 export function ErrorBoundary() {
   const error = useRouteError();
   return (
-    <AppProvider embedded>
+    <PolarisAppProvider i18n={translations} linkComponent={Link}>
       <div style={{ padding: 24, fontFamily: "system-ui" }}>
         <h1 style={{ fontSize: 20, fontWeight: 700 }}>加载出错</h1>
         <p style={{ color: "#697184", marginTop: 8 }}>{error?.message || "发生了未知错误"}</p>
-        <a href="/app" style={{ display: "inline-block", marginTop: 16, padding: "8px 16px", background: "#005aff", color: "#fff", borderRadius: 4, textDecoration: "none", fontSize: 14 }}>返回首页</a>
+        <Link to="/app" style={{ display: "inline-block", marginTop: 16, padding: "8px 16px", background: "#005aff", color: "#fff", borderRadius: 4, textDecoration: "none", fontSize: 14 }}>
+          返回首页
+        </Link>
       </div>
-    </AppProvider>
+    </PolarisAppProvider>
   );
 }
 

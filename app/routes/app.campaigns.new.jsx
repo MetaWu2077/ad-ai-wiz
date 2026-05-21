@@ -1,15 +1,15 @@
 import { useState, useCallback, useEffect } from "react";
-import { redirect, useActionData, useNavigation, useSubmit, useNavigate, useLoaderData } from "react-router";
+import { redirect, useActionData, useNavigation, useSubmit, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { Button } from "@shopify/polaris";
 
 export async function loader({ request }) {
   try {
     await authenticate.admin(request);
   } catch (e) {
-    // Session invalid — redirect will be handled client-side
     return { authRequired: true };
   }
   return {};
@@ -90,13 +90,12 @@ export default function NewCampaign() {
   const navigation = useNavigation();
   const submit = useSubmit();
   const shopify = useAppBridge();
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (loaderData?.authRequired) {
-      navigate('/auth/login');
+      window.location.href = "/auth/login";
     }
-  }, [loaderData, navigate]);
+  }, [loaderData]);
 
   const isLoading = navigation.state === "submitting";
   const product = actionData?.intent === "fetch_product" ? actionData?.product : null;
@@ -138,117 +137,129 @@ export default function NewCampaign() {
   const price = product?.priceRangeV2?.minVariantPrice;
 
   return (
-    <s-page heading="新建广告活动">
-      <button onClick={() => navigate("/app/campaigns")} className="shopify-button">返回</button>
+    <div style={{ padding: "24px 0", maxWidth: 720 }}>
+      <Button url="/app/campaigns">返回</Button>
 
-      <s-section heading="第一步：选择推广商品">
-        <s-paragraph>
-          输入商品的 Shopify 链接（如 https://your-store.myshopify.com/products/xxx）或直接输入商品 Handle
-        </s-paragraph>
+      <div style={{ marginTop: 24 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: "#212b36", marginBottom: 24 }}>新建广告活动</h1>
 
-        <s-stack direction="inline" gap="base" blockAlign="end">
-          <s-text-field
-            label="商品链接 / Handle"
-            value={productUrl}
-            onInput={(e) => setProductUrl(e.target.value)}
-            placeholder="https://your-store.myshopify.com/products/your-product"
-            style={{ flex: 1 }}
-          />
-          <button onClick={handleFetchProduct} disabled={!productUrl.trim()} className="shopify-button">{isLoading ? "查询中..." : "查询商品"}</button>
-        </s-stack>
+        <section style={{ marginBottom: 32 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12, color: "#212b36" }}>第一步：选择推广商品</h2>
+          <p style={{ color: "#697184", marginBottom: 12, fontSize: 14 }}>输入商品的 Shopify 链接或 Handle</p>
 
-        {fetchError && (
-          <s-banner tone="critical">
-            <s-paragraph>{fetchError}</s-paragraph>
-          </s-banner>
-        )}
+          <div style={{ display: "flex", gap: 12, alignItems: "flex-end" }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#212b36", marginBottom: 4 }}>商品链接 / Handle</label>
+              <input
+                type="text"
+                value={productUrl}
+                onChange={(e) => setProductUrl(e.target.value)}
+                placeholder="https://your-store.myshopify.com/products/your-product"
+                style={{ width: "100%", padding: "8px 12px", border: "1px solid #c4cdd5", borderRadius: 4, fontSize: 14 }}
+              />
+            </div>
+            <Button onClick={handleFetchProduct} loading={isLoading} disabled={!productUrl.trim()}>
+              查询商品
+            </Button>
+          </div>
+
+          {fetchError && (
+            <div style={{ marginTop: 8, padding: "8px 12px", background: "#fef0f0", border: "1px solid #fed7d7", borderRadius: 4, color: "#c00", fontSize: 13 }}>
+              {fetchError}
+            </div>
+          )}
+
+          {product && (
+            <div style={{ marginTop: 16, padding: 16, background: "#f6f6f7", border: "1px solid #c4cdd5", borderRadius: 8, display: "flex", gap: 12, alignItems: "center" }}>
+              {product.images?.edges?.[0]?.node?.url && (
+                <img src={product.images.edges[0].node.url} alt={product.title} style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 8 }} />
+              )}
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{product.title}</div>
+                {price && <div style={{ fontSize: 13, color: "#697184", marginTop: 2 }}>{price.currencyCode} {parseFloat(price.amount).toFixed(2)}</div>}
+                {product.tags?.length > 0 && <div style={{ fontSize: 12, color: "#919eab", marginTop: 2 }}>{product.tags.slice(0, 5).join(" · ")}</div>}
+              </div>
+            </div>
+          )}
+        </section>
 
         {product && (
-          <s-box padding="base" borderWidth="base" borderRadius="base" background="subdued">
-            <s-stack direction="inline" gap="base">
-              {product.images?.edges?.[0]?.node?.url && (
-                <img
-                  src={product.images.edges[0].node.url}
-                  alt={product.title}
-                  style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 8 }}
+          <section>
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12, color: "#212b36" }}>第二步：填写推广诉求</h2>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#212b36", marginBottom: 4 }}>目标受众</label>
+                <textarea
+                  value={targetAudience}
+                  onChange={(e) => setTargetAudience(e.target.value)}
+                  placeholder="例：25-45岁北美女性，喜欢家居装饰，有宠物"
+                  rows={2}
+                  style={{ width: "100%", padding: "8px 12px", border: "1px solid #c4cdd5", borderRadius: 4, fontSize: 14 }}
                 />
-              )}
-              <s-stack direction="block" gap="tight">
-                <s-text fontWeight="bold">{product.title}</s-text>
-                {price && (
-                  <s-text>{price.currencyCode} {parseFloat(price.amount).toFixed(2)}</s-text>
-                )}
-                {product.tags?.length > 0 && (
-                  <s-text>{product.tags.slice(0, 5).join(" · ")}</s-text>
-                )}
-              </s-stack>
-            </s-stack>
-          </s-box>
+                <div style={{ fontSize: 12, color: "#919eab", marginTop: 4 }}>描述你最想触达的用户画像，越具体越好</div>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#212b36", marginBottom: 4 }}>核心卖点（必填）</label>
+                <textarea
+                  value={sellingPoints}
+                  onChange={(e) => setSellingPoints(e.target.value)}
+                  placeholder={"1. 防水材质，适合厨房使用\n2. 一键拆洗，30秒搞定\n3. 限时买二送一"}
+                  rows={4}
+                  style={{ width: "100%", padding: "8px 12px", border: "1px solid #c4cdd5", borderRadius: 4, fontSize: 14 }}
+                />
+                <div style={{ fontSize: 12, color: "#919eab", marginTop: 4 }}>写出 1-3 条最打动人的卖点，AI 会把它们注入视频前3秒的 Hook</div>
+              </div>
+
+              <div style={{ display: "flex", gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#212b36", marginBottom: 4 }}>日预算（美元）</label>
+                  <input
+                    type="number"
+                    value={dailyBudget}
+                    onChange={(e) => setDailyBudget(e.target.value)}
+                    min="1"
+                    style={{ width: "100%", padding: "8px 12px", border: "1px solid #c4cdd5", borderRadius: 4, fontSize: 14 }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#212b36", marginBottom: 4 }}>广告风格</label>
+                  <select
+                    value={adStyle}
+                    onChange={(e) => setAdStyle(e.target.value)}
+                    style={{ width: "100%", padding: "8px 12px", border: "1px solid #c4cdd5", borderRadius: 4, fontSize: 14 }}
+                  >
+                    <option value="">选择广告风格...</option>
+                    {AD_STYLES.map((s) => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#212b36", marginBottom: 4 }}>竞品参考（可选）</label>
+                <input
+                  type="text"
+                  value={competitorRef}
+                  onChange={(e) => setCompetitorRef(e.target.value)}
+                  placeholder="例：https://www.amazon.com/dp/XXXXXX 或竞品名称"
+                  style={{ width: "100%", padding: "8px 12px", border: "1px solid #c4cdd5", borderRadius: 4, fontSize: 14 }}
+                />
+                <div style={{ fontSize: 12, color: "#919eab", marginTop: 4 }}>提供竞品链接，AI 会分析其广告策略并做差异化</div>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+                <Button variant="primary" onClick={handleSubmit} loading={isLoading}>
+                  创建广告活动 →
+                </Button>
+              </div>
+            </div>
+          </section>
         )}
-      </s-section>
-
-      {product && (
-        <s-section heading="第二步：填写推广诉求">
-          <s-stack direction="block" gap="base">
-
-            <s-text-field
-              label="目标受众"
-              value={targetAudience}
-              onInput={(e) => setTargetAudience(e.target.value)}
-              placeholder="例：25-45岁北美女性，喜欢家居装饰，有宠物"
-              helpText="描述你最想触达的用户画像，越具体越好"
-              multiline="2"
-            />
-
-            <s-text-field
-              label="核心卖点（必填）"
-              value={sellingPoints}
-              onInput={(e) => setSellingPoints(e.target.value)}
-              placeholder={"1. 防水材质，适合厨房使用\n2. 一键拆洗，30秒搞定\n3. 限时买二送一"}
-              helpText="写出 1-3 条最打动人的卖点，AI 会把它们注入视频前3秒的 Hook"
-              multiline="4"
-            />
-
-            <s-stack direction="inline" gap="base">
-              <s-text-field
-                label="日预算（美元）"
-                value={dailyBudget}
-                onInput={(e) => setDailyBudget(e.target.value)}
-                type="number"
-                prefix="$"
-                helpText="建议新品测试从 $20-50/天 开始"
-                style={{ flex: 1 }}
-              />
-
-              <s-select
-                label="广告风格"
-                value={adStyle}
-                onChange={(e) => setAdStyle(e.target.value)}
-                helpText="影响 AI 生成视频的整体基调"
-                style={{ flex: 1 }}
-              >
-                <option value="">选择广告风格...</option>
-                {AD_STYLES.map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </s-select>
-            </s-stack>
-
-            <s-text-field
-              label="竞品参考（可选）"
-              value={competitorRef}
-              onInput={(e) => setCompetitorRef(e.target.value)}
-              placeholder="例：https://www.amazon.com/dp/XXXXXX 或竞品名称"
-              helpText="提供竞品链接，AI 会分析其广告策略并做差异化"
-            />
-
-            <s-stack direction="inline" align="end">
-              <button onClick={handleSubmit} className="shopify-button-primary">{isLoading ? "创建中..." : "创建广告活动 →"}</button>
-            </s-stack>
-          </s-stack>
-        </s-section>
-      )}
-    </s-page>
+      </div>
+    </div>
   );
 }
 
