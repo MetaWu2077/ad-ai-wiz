@@ -19,14 +19,24 @@ export async function action({ request }) {
   const intent = formData.get("intent");
 
   if (intent === "fetch_product") {
-    const productUrl = formData.get("productUrl");
-    let handle = productUrl.trim();
-    const match = handle.match(/\/products\/([^/?#]+)/);
-    if (match) handle = match[1];
+    const raw = formData.get("productUrl");
+    let productGid = raw.trim();
+
+    // If it's a full Shopify admin URL, extract the numeric ID and convert to GID
+    const numericMatch = productGid.match(/\/(?:products|products\.php)\/(?:[^/]+\/)?([0-9]+)/);
+    if (numericMatch) {
+      productGid = `gid://shopify/Product/${numericMatch[1]}`;
+    } else if (!productGid.startsWith("gid://")) {
+      // Treat as handle — need to resolve handle to GID first (use productByHandle as fallback)
+      // Actually handles are deprecated too, so treat bare numbers as GID numeric part
+      if (/^\d+$/.test(productGid)) {
+        productGid = `gid://shopify/Product/${productGid}`;
+      }
+    }
 
     const response = await admin.graphql(`
-      query GetProductByHandle($handle: String!) {
-        productByHandle(handle: $handle) {
+      query GetProductById($id: ID!) {
+        product(id: $id) {
           id
           title
           tags
@@ -38,13 +48,13 @@ export async function action({ request }) {
           }
         }
       }
-    `, { variables: { handle } });
+    `, { variables: { id: productGid } });
 
     const data = await response.json();
-    const product = data?.data?.productByHandle;
+    const product = data?.data?.product;
 
     if (!product) {
-      return { error: "找不到该商品，请检查链接或 Handle 是否正确", intent: "fetch_product" };
+      return { error: "找不到该商品，请检查链接是否正确或该商品是否存在", intent: "fetch_product" };
     }
     return { product, intent: "fetch_product" };
   }
